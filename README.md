@@ -65,3 +65,17 @@ public interface Tool {
 javac -encoding UTF-8 -d target/classes (Get-ChildItem -Recurse src/main/java/*.java).FullName
 java -cp target/classes com.jagent.App
 ```
+
+启动后可以直接输入任务：
+
+```text
+> 现在几点了
+> 帮我计算 12 + 30
+> exit
+```
+
+也可以通过命令行参数执行单次任务：
+
+```powershell
+java -cp target/classes com.jagent.App "帮我计算 12 + 30"
+```

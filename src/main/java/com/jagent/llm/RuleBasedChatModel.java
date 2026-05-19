@@ -35,7 +35,8 @@ public class RuleBasedChatModel implements ChatModel {
                     """.formatted(additionMatcher.group(1), additionMatcher.group(2));
         }
 
-        if (input.contains("几点") || input.contains("时间")) {
+        String normalizedInput = input.toLowerCase();
+        if (input.contains("几点") || input.contains("时间") || normalizedInput.contains("time")) {
             return """
                     Thought: The user is asking for the current time, so I should use the time tool.
                     Action: time
