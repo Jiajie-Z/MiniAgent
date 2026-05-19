@@ -14,6 +14,10 @@ public class App {
         toolRegistry.register(new TimeTool());
         toolRegistry.register(new CalculatorTool());
 
+        System.out.println("Available Tools:");
+        System.out.println(toolRegistry.renderToolDescriptions());
+        System.out.println();
+
         AgentExecutor executor = new AgentExecutor(new RuleBasedChatModel(), toolRegistry);
         runTask(executor, "Task 1", "现在几点了");
         runTask(executor, "Task 2", "帮我计算 12 + 30");

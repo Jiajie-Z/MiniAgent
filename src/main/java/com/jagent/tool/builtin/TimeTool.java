@@ -19,6 +19,11 @@ public class TimeTool implements Tool {
     }
 
     @Override
+    public String parametersSchema() {
+        return "No parameters. Use an empty string.";
+    }
+
+    @Override
     public String execute(String arguments) {
         return LocalDateTime.now().format(FORMATTER);
     }

@@ -33,6 +33,21 @@ Final Answer: Tool calculator returned: 42
 
 这个设计的意义是：后续接入真实大模型时，只需要让模型按同样格式输出，Agent 执行器仍然可以复用。
 
+## 工具注册
+
+每个工具都实现统一的 `Tool` 接口：
+
+```java
+public interface Tool {
+    String name();
+    String description();
+    String parametersSchema();
+    String execute(String arguments);
+}
+```
+
+`ToolRegistry` 负责注册工具、按名称查找工具，并渲染工具说明。真实大模型接入后，工具说明会被放进 prompt，让模型知道可以调用哪些工具，以及每个工具需要什么参数。
+
 ## 运行
 
 ```powershell

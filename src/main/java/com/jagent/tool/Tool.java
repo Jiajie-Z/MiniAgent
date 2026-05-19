@@ -5,5 +5,7 @@ public interface Tool {
 
     String description();
 
+    String parametersSchema();
+
     String execute(String arguments);
 }

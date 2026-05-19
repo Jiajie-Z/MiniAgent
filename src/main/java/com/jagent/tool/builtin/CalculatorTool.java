@@ -14,6 +14,11 @@ public class CalculatorTool implements Tool {
     }
 
     @Override
+    public String parametersSchema() {
+        return "A plain addition expression in the form <integer>+<integer>, for example: 12+30.";
+    }
+
+    @Override
     public String execute(String arguments) {
         String[] parts = arguments.split("\\+");
         if (parts.length != 2) {
