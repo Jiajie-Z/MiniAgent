@@ -29,8 +29,7 @@ public class AgentExecutor {
                 return AgentResult.finished(decision.finalAnswer(), context.steps());
             }
 
-            Tool tool = toolRegistry.get(decision.toolName());
-            String observation = tool.execute(decision.toolArguments());
+            String observation = executeToolSafely(decision);
 
             context.addStep(new AgentStep(
                     stepIndex,
@@ -42,5 +41,14 @@ public class AgentExecutor {
         }
 
         return AgentResult.failed("Agent reached max steps: " + context.maxSteps(), context.steps());
+    }
+
+    private String executeToolSafely(AgentDecision decision) {
+        try {
+            Tool tool = toolRegistry.get(decision.toolName());
+            return tool.execute(decision.toolArguments());
+        } catch (RuntimeException exception) {
+            return "Tool Error: " + exception.getMessage();
+        }
     }
 }

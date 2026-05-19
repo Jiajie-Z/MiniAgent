@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 public class RuleBasedChatModel implements ChatModel {
     private static final Pattern ADDITION_PATTERN = Pattern.compile("(\\d+)\\s*\\+\\s*(\\d+)");
+    private static final Pattern SUBTRACTION_PATTERN = Pattern.compile("(\\d+)\\s*-\\s*(\\d+)");
     private final ReActDecisionParser parser = new ReActDecisionParser();
 
     @Override
@@ -19,6 +20,13 @@ public class RuleBasedChatModel implements ChatModel {
     private String generateReActResponse(AgentContext context) {
         if (!context.steps().isEmpty()) {
             AgentStep lastStep = context.steps().get(context.steps().size() - 1);
+            if (lastStep.observation().startsWith("Tool Error:")) {
+                return """
+                        Thought: The tool call failed, so I should explain the failure to the user.
+                        Final Answer: I could not complete the task because %s
+                        """.formatted(lastStep.observation());
+            }
+
             return """
                     Thought: I have received the tool observation and can now answer the user.
                     Final Answer: Tool %s returned: %s
@@ -33,6 +41,15 @@ public class RuleBasedChatModel implements ChatModel {
                     Action: calculator
                     Action Input: %s+%s
                     """.formatted(additionMatcher.group(1), additionMatcher.group(2));
+        }
+
+        Matcher subtractionMatcher = SUBTRACTION_PATTERN.matcher(input);
+        if (subtractionMatcher.find()) {
+            return """
+                    Thought: The user is asking for a subtraction calculation, but I will try the calculator tool and observe the result.
+                    Action: calculator
+                    Action Input: %s-%s
+                    """.formatted(subtractionMatcher.group(1), subtractionMatcher.group(2));
         }
 
         String normalizedInput = input.toLowerCase();

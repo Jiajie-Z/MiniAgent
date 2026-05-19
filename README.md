@@ -59,6 +59,16 @@ public interface Tool {
 
 这样 `AgentExecutor` 只负责流程控制，`ChatModel` 只负责根据 prompt 做下一步决策。后续接入真实大模型时，可以复用同一套 prompt 结构。
 
+## 工具异常处理
+
+工具执行由 `AgentExecutor` 统一包裹。工具抛出的运行时异常不会直接中断程序，而是被转换成 Observation：
+
+```text
+Observation: Tool Error: Only addition is supported now.
+```
+
+这样 Agent 可以把失败原因继续交给模型处理，而不是让整个应用崩溃。
+
 ## 运行
 
 ```powershell
