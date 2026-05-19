@@ -1,8 +1,8 @@
 package com.jagent;
 
 import com.jagent.agent.AgentExecutor;
+import com.jagent.agent.AgentEvent;
 import com.jagent.agent.AgentResult;
-import com.jagent.agent.AgentStep;
 import com.jagent.llm.RuleBasedChatModel;
 import com.jagent.tool.ToolRegistry;
 import com.jagent.tool.builtin.CalculatorTool;
@@ -52,16 +52,22 @@ public class App {
     }
 
     private static void runTask(AgentExecutor executor, String userInput) {
-        AgentResult result = executor.run(userInput);
+        AgentResult result = executor.run(userInput, App::printEvent);
 
-        System.out.println("User Input: " + userInput);
-        for (AgentStep step : result.steps()) {
-            System.out.println("Thought: " + step.thought());
-            System.out.println("Action: " + step.toolName());
-            System.out.println("Action Input: " + step.toolArguments());
-            System.out.println("Observation: " + step.observation());
+        if (!result.success()) {
+            System.out.println("Run failed: " + result.finalAnswer());
         }
-        System.out.println("Final Answer: " + result.finalAnswer());
         System.out.println();
+    }
+
+    private static void printEvent(AgentEvent event) {
+        switch (event.type()) {
+            case STARTED -> System.out.println("User Input: " + event.message());
+            case THINKING -> System.out.println("Thought: " + event.message());
+            case TOOL_CALLING -> System.out.println("Action: " + event.message());
+            case OBSERVATION -> System.out.println("Observation: " + event.message());
+            case FINISHED -> System.out.println("Final Answer: " + event.message());
+            case FAILED -> System.out.println("Failed: " + event.message());
+        }
     }
 }

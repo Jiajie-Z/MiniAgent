@@ -69,6 +69,19 @@ Observation: Tool Error: Only addition is supported now.
 
 这样 Agent 可以把失败原因继续交给模型处理，而不是让整个应用崩溃。
 
+## 执行事件
+
+`AgentExecutor` 支持传入 `AgentEventListener`，在关键节点发出事件：
+
+- `STARTED`
+- `THINKING`
+- `TOOL_CALLING`
+- `OBSERVATION`
+- `FINISHED`
+- `FAILED`
+
+命令行程序目前使用事件监听器打印执行轨迹。后续接入 Web 接口时，可以把同一套事件转换成 SSE 流式响应。
+
 ## 运行
 
 ```powershell
