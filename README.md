@@ -14,6 +14,25 @@
 
 当前版本使用 `RuleBasedChatModel` 模拟大模型，方便先理解 Agent 的执行流程。后续再接真实大模型、SSE、RAG 和日志落库。
 
+## ReAct 格式
+
+当前 Agent 使用类似 ReAct 的文本格式描述模型决策：
+
+```text
+Thought: The user needs a calculation.
+Action: calculator
+Action Input: 12+30
+```
+
+工具执行完成后，Agent 会把结果作为 Observation 写入上下文，再让模型继续决策：
+
+```text
+Observation: 42
+Final Answer: Tool calculator returned: 42
+```
+
+这个设计的意义是：后续接入真实大模型时，只需要让模型按同样格式输出，Agent 执行器仍然可以复用。
+
 ## 运行
 
 ```powershell
