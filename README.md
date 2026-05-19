@@ -48,6 +48,17 @@ public interface Tool {
 
 `ToolRegistry` 负责注册工具、按名称查找工具，并渲染工具说明。真实大模型接入后，工具说明会被放进 prompt，让模型知道可以调用哪些工具，以及每个工具需要什么参数。
 
+## Prompt 构造
+
+`PromptBuilder` 负责把 Agent 运行所需信息组装成统一 prompt：
+
+- ReAct 输出格式要求
+- 当前可用工具清单
+- 用户输入
+- 已执行步骤和 Observation
+
+这样 `AgentExecutor` 只负责流程控制，`ChatModel` 只负责根据 prompt 做下一步决策。后续接入真实大模型时，可以复用同一套 prompt 结构。
+
 ## 运行
 
 ```powershell

@@ -12,7 +12,7 @@ public class RuleBasedChatModel implements ChatModel {
     private final ReActDecisionParser parser = new ReActDecisionParser();
 
     @Override
-    public AgentDecision decide(AgentContext context) {
+    public AgentDecision decide(String prompt, AgentContext context) {
         return parser.parse(generateReActResponse(context));
     }
 

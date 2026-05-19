@@ -1,6 +1,7 @@
 package com.jagent.agent;
 
 import com.jagent.llm.ChatModel;
+import com.jagent.llm.PromptBuilder;
 import com.jagent.tool.Tool;
 import com.jagent.tool.ToolRegistry;
 
@@ -9,17 +10,20 @@ public class AgentExecutor {
 
     private final ChatModel chatModel;
     private final ToolRegistry toolRegistry;
+    private final PromptBuilder promptBuilder;
 
     public AgentExecutor(ChatModel chatModel, ToolRegistry toolRegistry) {
         this.chatModel = chatModel;
         this.toolRegistry = toolRegistry;
+        this.promptBuilder = new PromptBuilder();
     }
 
     public AgentResult run(String userInput) {
         AgentContext context = new AgentContext(userInput, DEFAULT_MAX_STEPS);
 
         for (int stepIndex = 1; stepIndex <= context.maxSteps(); stepIndex++) {
-            AgentDecision decision = chatModel.decide(context);
+            String prompt = promptBuilder.build(context, toolRegistry.renderToolDescriptions());
+            AgentDecision decision = chatModel.decide(prompt, context);
 
             if (decision.state() == AgentState.FINISHED) {
                 return AgentResult.finished(decision.finalAnswer(), context.steps());
