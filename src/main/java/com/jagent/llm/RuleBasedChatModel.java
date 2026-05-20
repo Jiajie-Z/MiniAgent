@@ -18,33 +18,37 @@ public class RuleBasedChatModel implements ChatModel {
     }
 
     private String generateReActResponse(AgentContext context) {
-        if (!context.steps().isEmpty()) {
-            AgentStep lastStep = context.steps().get(context.steps().size() - 1);
-            if (lastStep.observation().startsWith("Tool Error:")) {
-                return """
-                        Thought: The tool call failed, so I should explain the failure to the user.
-                        Final Answer: I could not complete the task because %s
-                        """.formatted(lastStep.observation());
-            }
-
+        AgentStep failedStep = findFailedStep(context);
+        if (failedStep != null) {
             return """
-                    Thought: I have received the tool observation and can now answer the user.
-                    Final Answer: Tool %s returned: %s
-                    """.formatted(lastStep.toolName(), lastStep.observation());
+                    Thought: The tool call failed, so I should explain the failure to the user.
+                    Final Answer: I could not complete the task because %s
+                    """.formatted(failedStep.observation());
         }
 
         String input = context.userInput();
         Matcher additionMatcher = ADDITION_PATTERN.matcher(input);
-        if (additionMatcher.find()) {
+        Matcher subtractionMatcher = SUBTRACTION_PATTERN.matcher(input);
+
+        if (hasTimeRequest(input) && !hasExecutedTool(context, "time")) {
             return """
-                    Thought: The user is asking for an addition calculation, so I should use the calculator tool.
+                    Thought: The user asks for the current time, and I have not called the time tool yet.
+                    Action: time
+                    Action Input:
+                    """;
+        }
+
+        if (additionMatcher.find() && !hasExecutedToolWithArguments(context, "calculator",
+                additionMatcher.group(1) + "+" + additionMatcher.group(2))) {
+            return """
+                    Thought: The user asks for an addition calculation, and I still need to call the calculator tool for it.
                     Action: calculator
                     Action Input: %s+%s
                     """.formatted(additionMatcher.group(1), additionMatcher.group(2));
         }
 
-        Matcher subtractionMatcher = SUBTRACTION_PATTERN.matcher(input);
-        if (subtractionMatcher.find()) {
+        if (subtractionMatcher.find() && !hasExecutedToolWithArguments(context, "calculator",
+                subtractionMatcher.group(1) + "-" + subtractionMatcher.group(2))) {
             return """
                     Thought: The user is asking for a subtraction calculation, but I will try the calculator tool and observe the result.
                     Action: calculator
@@ -52,18 +56,52 @@ public class RuleBasedChatModel implements ChatModel {
                     """.formatted(subtractionMatcher.group(1), subtractionMatcher.group(2));
         }
 
-        String normalizedInput = input.toLowerCase();
-        if (input.contains("几点") || input.contains("时间") || normalizedInput.contains("time")) {
+        if (!context.steps().isEmpty()) {
             return """
-                    Thought: The user is asking for the current time, so I should use the time tool.
-                    Action: time
-                    Action Input:
-                    """;
+                    Thought: I have completed all tool calls required by the user and can summarize the observations.
+                    Final Answer: %s
+                    """.formatted(summarizeObservations(context));
         }
 
         return """
                 Thought: This request does not require a tool supported by the current demo.
                 Final Answer: I can currently demonstrate time lookup and simple addition.
                 """;
+    }
+
+    private boolean hasTimeRequest(String input) {
+        String normalizedInput = input.toLowerCase();
+        return input.contains("几点") || input.contains("时间") || normalizedInput.contains("time");
+    }
+
+    private boolean hasExecutedTool(AgentContext context, String toolName) {
+        return context.steps().stream().anyMatch(step -> step.toolName().equals(toolName));
+    }
+
+    private boolean hasExecutedToolWithArguments(AgentContext context, String toolName, String arguments) {
+        return context.steps().stream()
+                .anyMatch(step -> step.toolName().equals(toolName) && step.toolArguments().equals(arguments));
+    }
+
+    private AgentStep findFailedStep(AgentContext context) {
+        return context.steps().stream()
+                .filter(step -> step.observation().startsWith("Tool Error:"))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String summarizeObservations(AgentContext context) {
+        StringBuilder answer = new StringBuilder();
+        for (AgentStep step : context.steps()) {
+            if (!answer.isEmpty()) {
+                answer.append(" ");
+            }
+            answer.append("Tool ")
+                    .append(step.toolName())
+                    .append(" returned: ")
+                    .append(step.observation())
+                    .append(".");
+        }
+        return answer.toString();
     }
 }

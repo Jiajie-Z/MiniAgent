@@ -69,6 +69,16 @@ Observation: Tool Error: Only addition is supported now.
 
 这样 Agent 可以把失败原因继续交给模型处理，而不是让整个应用崩溃。
 
+## 多步骤任务
+
+Agent 会根据历史 Observation 判断是否还有未完成的子任务。比如用户输入：
+
+```text
+先告诉我现在几点，再帮我计算 12 + 30
+```
+
+执行过程会先调用 `time` 工具，再调用 `calculator` 工具，最后汇总两个 Observation。这个流程展示了 Agent 不是一次性函数调用，而是可以在多轮工具执行中逐步完成任务。
+
 ## 执行事件
 
 `AgentExecutor` 支持传入 `AgentEventListener`，在关键节点发出事件：
@@ -96,6 +106,7 @@ java -cp target/classes com.jagent.App
 ```text
 > 现在几点了
 > 帮我计算 12 + 30
+> 先告诉我现在几点，再帮我计算 12 + 30
 > exit
 ```
 
