@@ -15,10 +15,23 @@ public class TextSplitter {
         String[] paragraphs = document.content().split("\\R\\s*\\R");
 
         int index = 1;
+        String pendingHeading = "";
         for (String paragraph : paragraphs) {
             String normalized = paragraph.trim();
             if (normalized.isEmpty()) {
                 continue;
+            }
+
+            if (isHeading(normalized)) {
+                pendingHeading = pendingHeading.isEmpty()
+                        ? normalized
+                        : pendingHeading + System.lineSeparator() + normalized;
+                continue;
+            }
+
+            if (!pendingHeading.isEmpty()) {
+                normalized = pendingHeading + System.lineSeparator() + normalized;
+                pendingHeading = "";
             }
 
             int start = 0;
@@ -34,5 +47,9 @@ public class TextSplitter {
         }
 
         return chunks;
+    }
+
+    private boolean isHeading(String text) {
+        return text.startsWith("#") && !text.contains(System.lineSeparator());
     }
 }
