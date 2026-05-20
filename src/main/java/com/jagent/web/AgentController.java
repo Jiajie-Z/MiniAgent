@@ -6,7 +6,6 @@ import com.jagent.log.AgentRunLogService;
 import com.jagent.log.AgentRunSummary;
 import com.jagent.tool.ToolRegistry;
 import org.springframework.http.MediaType;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -33,13 +31,13 @@ public class AgentController {
     }
 
     @GetMapping("/tools")
-    public String tools() {
-        return toolRegistry.renderToolDescriptions();
+    public ApiResponse<String> tools() {
+        return ApiResponse.success(toolRegistry.renderToolDescriptions());
     }
 
     @PostMapping("/agent/run")
-    public AgentRunLog run(@RequestBody AgentRunRequest request) {
-        return logService.runAndLog(request.input());
+    public ApiResponse<AgentRunLog> run(@RequestBody AgentRunRequest request) {
+        return ApiResponse.success(logService.runAndLog(request.input()));
     }
 
     @GetMapping(value = "/agent/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -59,17 +57,13 @@ public class AgentController {
     }
 
     @GetMapping("/runs")
-    public List<AgentRunSummary> runs() {
-        return logService.findAllSummaries();
+    public ApiResponse<List<AgentRunSummary>> runs() {
+        return ApiResponse.success(logService.findAllSummaries());
     }
 
     @GetMapping("/runs/{runId}")
-    public AgentRunLog runLog(@PathVariable String runId) {
-        try {
-            return logService.findById(runId);
-        } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage(), exception);
-        }
+    public ApiResponse<AgentRunLog> runLog(@PathVariable String runId) {
+        return ApiResponse.success(logService.findById(runId));
     }
 
     private void sendEvent(SseEmitter emitter, AgentEvent event) {

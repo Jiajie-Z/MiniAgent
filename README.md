@@ -136,6 +136,26 @@ GET  /api/runs/{runId}
 
 `/api/runs` 和 `/api/runs/{runId}` 用于查看 Agent 执行日志，包括用户输入、最终回答、执行耗时和每一步工具调用明细。
 
+除 SSE 接口外，普通 REST API 使用统一响应格式：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {}
+}
+```
+
+异常会由全局异常处理器转换成统一错误响应：
+
+```json
+{
+  "code": 404,
+  "message": "Unknown runId: xxx",
+  "data": null
+}
+```
+
 ## 执行日志
 
 每次 Web API 运行都会生成一条执行日志：
