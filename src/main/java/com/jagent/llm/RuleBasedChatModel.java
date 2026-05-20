@@ -30,6 +30,14 @@ public class RuleBasedChatModel implements ChatModel {
         Matcher additionMatcher = ADDITION_PATTERN.matcher(input);
         Matcher subtractionMatcher = SUBTRACTION_PATTERN.matcher(input);
 
+        if (hasRagRequest(input) && !hasExecutedTool(context, "rag_search")) {
+            return """
+                    Thought: The user is asking about knowledge base content, so I should search the local RAG knowledge base.
+                    Action: rag_search
+                    Action Input: %s
+                    """.formatted(input);
+        }
+
         if (hasTimeRequest(input) && !hasExecutedTool(context, "time")) {
             return """
                     Thought: The user asks for the current time, and I have not called the time tool yet.
@@ -72,6 +80,15 @@ public class RuleBasedChatModel implements ChatModel {
     private boolean hasTimeRequest(String input) {
         String normalizedInput = input.toLowerCase();
         return input.contains("几点") || input.contains("时间") || normalizedInput.contains("time");
+    }
+
+    private boolean hasRagRequest(String input) {
+        String normalizedInput = input.toLowerCase();
+        return input.contains("知识库")
+                || normalizedInput.contains("knowledge")
+                || normalizedInput.contains("miniagent")
+                || input.contains("支持什么功能")
+                || input.contains("功能");
     }
 
     private boolean hasExecutedTool(AgentContext context, String toolName) {
