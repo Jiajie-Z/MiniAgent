@@ -5,6 +5,7 @@ public record AgentStep(
         String thought,
         String toolName,
         String toolArguments,
-        String observation
+        String observation,
+        long durationMs
 ) {
 }

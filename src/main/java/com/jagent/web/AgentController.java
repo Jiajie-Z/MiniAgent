@@ -1,30 +1,35 @@
 package com.jagent.web;
 
 import com.jagent.agent.AgentEvent;
-import com.jagent.agent.AgentExecutor;
-import com.jagent.agent.AgentResult;
+import com.jagent.log.AgentRunLog;
+import com.jagent.log.AgentRunLogService;
+import com.jagent.log.AgentRunSummary;
 import com.jagent.tool.ToolRegistry;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api")
 public class AgentController {
-    private final AgentExecutor agentExecutor;
     private final ToolRegistry toolRegistry;
+    private final AgentRunLogService logService;
 
-    public AgentController(AgentExecutor agentExecutor, ToolRegistry toolRegistry) {
-        this.agentExecutor = agentExecutor;
+    public AgentController(ToolRegistry toolRegistry, AgentRunLogService logService) {
         this.toolRegistry = toolRegistry;
+        this.logService = logService;
     }
 
     @GetMapping("/tools")
@@ -33,8 +38,8 @@ public class AgentController {
     }
 
     @PostMapping("/agent/run")
-    public AgentResult run(@RequestBody AgentRunRequest request) {
-        return agentExecutor.run(request.input());
+    public AgentRunLog run(@RequestBody AgentRunRequest request) {
+        return logService.runAndLog(request.input());
     }
 
     @GetMapping(value = "/agent/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -43,7 +48,7 @@ public class AgentController {
 
         CompletableFuture.runAsync(() -> {
             try {
-                agentExecutor.run(input, event -> sendEvent(emitter, event));
+                logService.runAndLog(input, event -> sendEvent(emitter, event));
                 emitter.complete();
             } catch (RuntimeException exception) {
                 emitter.completeWithError(exception);
@@ -51,6 +56,20 @@ public class AgentController {
         });
 
         return emitter;
+    }
+
+    @GetMapping("/runs")
+    public List<AgentRunSummary> runs() {
+        return logService.findAllSummaries();
+    }
+
+    @GetMapping("/runs/{runId}")
+    public AgentRunLog runLog(@PathVariable String runId) {
+        try {
+            return logService.findById(runId);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage(), exception);
+        }
     }
 
     private void sendEvent(SseEmitter emitter, AgentEvent event) {

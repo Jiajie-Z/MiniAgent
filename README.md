@@ -128,9 +128,28 @@ mvn spring-boot:run
 GET  /api/tools
 POST /api/agent/run
 GET  /api/agent/stream?input=what%20time%20is%20it
+GET  /api/runs
+GET  /api/runs/{runId}
 ```
 
 `/api/agent/stream` 使用 SSE 按事件推送 Agent 执行过程。
+
+`/api/runs` 和 `/api/runs/{runId}` 用于查看 Agent 执行日志，包括用户输入、最终回答、执行耗时和每一步工具调用明细。
+
+## 执行日志
+
+每次 Web API 运行都会生成一条执行日志：
+
+```text
+runId
+userInput
+success
+finalAnswer
+startedAt / finishedAt / durationMs
+steps[index, thought, toolName, toolArguments, observation, durationMs]
+```
+
+当前版本使用内存仓库保存日志，适合调试和演示。后续可以替换成数据库实现，不需要改变 Controller 的查询接口。
 
 ## Docker
 

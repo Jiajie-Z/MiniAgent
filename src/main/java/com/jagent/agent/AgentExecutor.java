@@ -37,7 +37,9 @@ public class AgentExecutor {
             }
 
             listener.onEvent(AgentEvent.toolCalling(stepIndex, decision.toolName(), decision.toolArguments()));
+            long startedAt = System.nanoTime();
             String observation = executeToolSafely(decision);
+            long durationMs = (System.nanoTime() - startedAt) / 1_000_000;
             listener.onEvent(AgentEvent.observation(stepIndex, observation));
 
             context.addStep(new AgentStep(
@@ -45,7 +47,8 @@ public class AgentExecutor {
                     decision.thought(),
                     decision.toolName(),
                     decision.toolArguments(),
-                    observation
+                    observation,
+                    durationMs
             ));
         }
 
