@@ -3,24 +3,20 @@ package com.jagent;
 import com.jagent.agent.AgentExecutor;
 import com.jagent.agent.AgentEvent;
 import com.jagent.agent.AgentResult;
-import com.jagent.llm.RuleBasedChatModel;
 import com.jagent.tool.ToolRegistry;
-import com.jagent.tool.builtin.CalculatorTool;
-import com.jagent.tool.builtin.TimeTool;
 
 import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) {
-        ToolRegistry toolRegistry = new ToolRegistry();
-        toolRegistry.register(new TimeTool());
-        toolRegistry.register(new CalculatorTool());
+        AgentFactory agentFactory = new AgentFactory();
+        ToolRegistry toolRegistry = agentFactory.createToolRegistry();
 
         System.out.println("Available Tools:");
         System.out.println(toolRegistry.renderToolDescriptions());
         System.out.println();
 
-        AgentExecutor executor = new AgentExecutor(new RuleBasedChatModel(), toolRegistry);
+        AgentExecutor executor = agentFactory.createAgentExecutor(toolRegistry);
 
         if (args.length > 0) {
             runTask(executor, String.join(" ", args));

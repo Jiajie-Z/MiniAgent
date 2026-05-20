@@ -84,6 +84,8 @@ Observation: Tool Error: Only addition is supported now.
 
 ## 运行
 
+命令行模式：
+
 ```powershell
 javac -encoding UTF-8 -d target/classes (Get-ChildItem -Recurse src/main/java/*.java).FullName
 java -cp target/classes com.jagent.App
@@ -102,3 +104,19 @@ java -cp target/classes com.jagent.App
 ```powershell
 java -cp target/classes com.jagent.App "帮我计算 12 + 30"
 ```
+
+Web 服务模式：
+
+```powershell
+mvn spring-boot:run
+```
+
+常用接口：
+
+```text
+GET  /api/tools
+POST /api/agent/run
+GET  /api/agent/stream?input=what%20time%20is%20it
+```
+
+`/api/agent/stream` 使用 SSE 按事件推送 Agent 执行过程。
