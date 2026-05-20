@@ -1,0 +1,21 @@
+services:
+  mini-agent-db:
+    image: pgvector/pgvector:pg16
+    container_name: mini-agent-db
+    environment:
+      POSTGRES_DB: mini_agent
+      POSTGRES_USER: mini_agent
+      POSTGRES_PASSWORD: mini_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - mini-agent-db-data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mini_agent -d mini_agent"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mini-agent-db-data:
