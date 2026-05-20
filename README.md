@@ -120,3 +120,23 @@ GET  /api/agent/stream?input=what%20time%20is%20it
 ```
 
 `/api/agent/stream` 使用 SSE 按事件推送 Agent 执行过程。
+
+## Docker
+
+构建镜像：
+
+```powershell
+docker build -t mini-agent .
+```
+
+运行容器：
+
+```powershell
+docker run --rm -p 8080:8080 mini-agent
+```
+
+启动后访问：
+
+```text
+http://127.0.0.1:8080/api/tools
+```
