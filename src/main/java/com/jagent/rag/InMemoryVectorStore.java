@@ -13,6 +13,11 @@ public class InMemoryVectorStore implements VectorStore {
     }
 
     @Override
+    public void clear() {
+        chunks.clear();
+    }
+
+    @Override
     public void add(DocumentChunk chunk) {
         chunks.add(new StoredChunk(chunk, embeddingModel.embed(chunk.content())));
     }

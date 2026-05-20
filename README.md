@@ -116,6 +116,25 @@ docker/postgres/init.sql
 
 当前表结构使用 `vector(128)`，与 `SimpleEmbeddingModel` 的固定 128 维 hash embedding 对齐。
 
+Web 服务默认使用内存向量库。如需切换到 pgvector：
+
+```powershell
+mvn spring-boot:run "-Dspring-boot.run.arguments=--miniagent.rag.store=pgvector"
+```
+
+`PgVectorStore` 会在启动时把 Markdown 知识库分块写入 `document_chunks` 表，并使用 pgvector cosine distance 进行相似度检索。RAG 存储层通过 `VectorStore` 接口解耦，目前支持：
+
+- `InMemoryVectorStore`
+- `PgVectorStore`
+
+相关配置位于 `src/main/resources/application.properties`：
+
+```properties
+miniagent.rag.store=in-memory
+miniagent.rag.top-k=3
+miniagent.rag.chunk-size=500
+```
+
 ## 执行事件
 
 `AgentExecutor` 支持传入 `AgentEventListener`，在关键节点发出事件：

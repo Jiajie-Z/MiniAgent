@@ -15,10 +15,14 @@ import com.jagent.tool.builtin.TimeTool;
 
 public class AgentFactory {
     public ToolRegistry createToolRegistry() {
+        return createToolRegistry(createRetriever());
+    }
+
+    public ToolRegistry createToolRegistry(Retriever retriever) {
         ToolRegistry toolRegistry = new ToolRegistry();
         toolRegistry.register(new TimeTool());
         toolRegistry.register(new CalculatorTool());
-        toolRegistry.register(new RagSearchTool(createRetriever()));
+        toolRegistry.register(new RagSearchTool(retriever));
         return toolRegistry;
     }
 
@@ -26,14 +30,16 @@ public class AgentFactory {
         return new AgentExecutor(new RuleBasedChatModel(), toolRegistry);
     }
 
-    private Retriever createRetriever() {
+    public Retriever createRetriever() {
         VectorStore vectorStore = new InMemoryVectorStore(new SimpleEmbeddingModel());
-        TextSplitter splitter = new TextSplitter(500);
+        loadKnowledgeBase(vectorStore, new TextSplitter(500));
+        return new Retriever(vectorStore, 3);
+    }
 
+    public void loadKnowledgeBase(VectorStore vectorStore, TextSplitter splitter) {
+        vectorStore.clear();
         for (var document : new KnowledgeBaseLoader("knowledge").load()) {
             splitter.split(document).forEach(vectorStore::add);
         }
-
-        return new Retriever(vectorStore, 3);
     }
 }
