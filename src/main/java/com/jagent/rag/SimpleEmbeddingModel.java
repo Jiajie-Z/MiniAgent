@@ -1,20 +1,37 @@
 package com.jagent.rag;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 public class SimpleEmbeddingModel implements EmbeddingModel {
+    private static final int DEFAULT_DIMENSION = 128;
+    private final int dimension;
+
+    public SimpleEmbeddingModel() {
+        this(DEFAULT_DIMENSION);
+    }
+
+    public SimpleEmbeddingModel(int dimension) {
+        this.dimension = dimension;
+    }
+
     @Override
-    public Map<String, Double> embed(String text) {
-        Map<String, Double> vector = new HashMap<>();
+    public Embedding embed(String text) {
+        double[] vector = new double[dimension];
         for (String token : tokenize(text)) {
             if (token.isBlank()) {
                 continue;
             }
-            vector.merge(token, 1.0, Double::sum);
+            int index = Math.floorMod(token.hashCode(), dimension);
+            vector[index] += 1.0;
         }
-        return vector;
+
+        normalize(vector);
+        return new Embedding(vector);
+    }
+
+    @Override
+    public int dimension() {
+        return dimension;
     }
 
     private String[] tokenize(String text) {
@@ -22,5 +39,21 @@ public class SimpleEmbeddingModel implements EmbeddingModel {
                 .replaceAll("[^\\p{IsHan}\\p{Alnum}]+", " ")
                 .trim()
                 .split("\\s+");
+    }
+
+    private void normalize(double[] vector) {
+        double sum = 0;
+        for (double value : vector) {
+            sum += value * value;
+        }
+
+        if (sum == 0) {
+            return;
+        }
+
+        double norm = Math.sqrt(sum);
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] = vector[i] / norm;
+        }
     }
 }
