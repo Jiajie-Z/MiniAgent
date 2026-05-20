@@ -54,6 +54,6 @@ public class AgentRunLogService {
 
     public AgentRunLog findById(String runId) {
         return repository.findById(runId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown runId: " + runId));
+                .orElseThrow(() -> new AgentRunNotFoundException(runId));
     }
 }

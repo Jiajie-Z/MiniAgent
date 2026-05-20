@@ -5,6 +5,7 @@ import com.jagent.log.AgentRunLog;
 import com.jagent.log.AgentRunLogService;
 import com.jagent.log.AgentRunSummary;
 import com.jagent.tool.ToolRegistry;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,8 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api")
 public class AgentController {
+    private static final int MAX_INPUT_LENGTH = 1000;
+
     private final ToolRegistry toolRegistry;
     private final AgentRunLogService logService;
 
@@ -36,12 +39,13 @@ public class AgentController {
     }
 
     @PostMapping("/agent/run")
-    public ApiResponse<AgentRunLog> run(@RequestBody AgentRunRequest request) {
+    public ApiResponse<AgentRunLog> run(@Valid @RequestBody AgentRunRequest request) {
         return ApiResponse.success(logService.runAndLog(request.input()));
     }
 
     @GetMapping(value = "/agent/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@RequestParam String input) {
+        validateInput(input);
         SseEmitter emitter = new SseEmitter(0L);
 
         CompletableFuture.runAsync(() -> {
@@ -73,6 +77,15 @@ public class AgentController {
                     .data(event));
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to send SSE event.", exception);
+        }
+    }
+
+    private void validateInput(String input) {
+        if (input == null || input.isBlank()) {
+            throw new IllegalArgumentException("input must not be blank");
+        }
+        if (input.length() > MAX_INPUT_LENGTH) {
+            throw new IllegalArgumentException("input must be at most 1000 characters");
         }
     }
 }

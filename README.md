@@ -150,11 +150,13 @@ GET  /api/runs/{runId}
 
 ```json
 {
-  "code": 404,
-  "message": "Unknown runId: xxx",
+  "code": 400,
+  "message": "input must not be blank",
   "data": null
 }
 ```
+
+Agent 输入不能为空，长度不能超过 1000 个字符。`POST /api/agent/run` 和 `GET /api/agent/stream` 都会执行输入校验。
 
 ## 执行日志
 
