@@ -1,10 +1,8 @@
 # MiniAgent
 
-[English README](README_EN.md)
-
 MiniAgent is a lightweight Java Agent Runtime built from scratch. It implements a ReAct-style execution loop, tool orchestration, multi-step task execution, RAG retrieval, SSE event streaming, execution logs, unified REST APIs, and Docker-based deployment.
 
-The current model implementation is `RuleBasedChatModel`, which is used to demonstrate the Agent runtime without relying on an external LLM API. The runtime is designed so a real LLM adapter can replace the model layer later.
+The current model implementation is `RuleBasedChatModel`, which demonstrates the Agent runtime without depending on an external LLM API. The runtime is designed so a real LLM adapter can replace the model layer later.
 
 ## Features
 
@@ -112,10 +110,10 @@ java -cp target/classes com.jagent.App
 Example CLI inputs:
 
 ```text
-现在几点了
-帮我计算 12 + 30
-先告诉我现在几点，再帮我计算 12 + 30
-根据知识库回答：MiniAgent 支持什么功能？
+what time is it
+calculate 12 + 30
+tell me the time and calculate 12 + 30
+MiniAgent knowledge features
 ```
 
 ## API
@@ -262,18 +260,6 @@ Initialization SQL:
 
 ```text
 docker/postgres/init.sql
-```
-
-Table:
-
-```sql
-CREATE TABLE document_chunks (
-    id VARCHAR(128) PRIMARY KEY,
-    document_id VARCHAR(128) NOT NULL,
-    content TEXT NOT NULL,
-    embedding vector(128) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 ```
 
 Run Web service with pgvector:
